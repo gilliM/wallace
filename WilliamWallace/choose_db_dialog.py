@@ -23,19 +23,35 @@
 
 import os
 
-from PyQt4 import QtGui, uic
+from PyQt4 import QtGui, uic, QtCore, QtSql
+s = QtCore.QSettings()
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'willian_wallace_dialog_base.ui'))
+    os.path.dirname(__file__), 'choose_db_dialog_base.ui'))
 
 
-class WilliamWallaceDialog(QtGui.QDialog, FORM_CLASS):
-    def __init__(self, parent=None):
+class ChooseDbDialog(QtGui.QDialog, FORM_CLASS):
+    def __init__(self, parent = None):
         """Constructor."""
-        super(WilliamWallaceDialog, self).__init__(parent)
-        # Set up the user interface from Designer.
-        # After setupUI you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
+        super(ChooseDbDialog, self).__init__(parent)
         self.setupUi(self)
+        listOfConnections = self.getPostgisConnections()
+        self.fillComboBox(listOfConnections)
+        currentConnection = s.value('WallacePlugins/connectionName')
+        if currentConnection is not None:
+            index = self.comboBox.findData(currentConnection)
+            self.comboBox.setCurrentIndex(index)
+
+    def fillComboBox(self, list):
+        self.comboBox.addItem('', None)
+        for name in list:
+            self.comboBox.addItem(name, name)
+
+    def getPostgisConnections(self):
+        keyList = []
+        for key in s.allKeys():
+            if key.startswith('PostgreSQL/connections'):
+                if key.endswith('database'):
+                    connectionName = key.split('/')[2]
+                    keyList.append(connectionName)
+        return keyList

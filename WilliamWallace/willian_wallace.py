@@ -25,8 +25,9 @@ from PyQt4.QtGui import QAction, QIcon, QMenu, QToolButton
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
-from willian_wallace_dialog import WilliamWallaceDialog
+from choose_db_dialog import ChooseDbDialog
 import os.path
+s = QSettings()
 
 
 class WilliamWallace:
@@ -58,9 +59,6 @@ class WilliamWallace:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        # Create the dialog (after translation) and keep reference
-        self.dlg = WilliamWallaceDialog()
-
         self.actions = []
         self.menu = self.tr(u'&William Wallace')
 
@@ -82,7 +80,7 @@ class WilliamWallace:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        self.action1 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Action 1", self.iface.mainWindow())
+        self.action1 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Choose target DB", self.iface.mainWindow())
         self.action2 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Action 2", self.iface.mainWindow())
         self.action3 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Action 3", self.iface.mainWindow())
         self.actions.append(self.action1)
@@ -102,7 +100,15 @@ class WilliamWallace:
         self.toolbar1 = self.iface.addToolBarWidget(self.toolButton)
 
     def someMethod1(self):
-        pass
+        dialog = ChooseDbDialog()
+        dialog.show()
+        ok = dialog.exec_()
+        if ok:
+            name = dialog.comboBox.currentText()
+            if name == '' or name is None:
+                return
+            s.setValue('WallacePlugins/connectionName', name)
+        return
 
     def someMethod2(self):
         pass
