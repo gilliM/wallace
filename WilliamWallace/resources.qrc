@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/WilliamWallace/" >
+        <file>icons/tiger.png</file>
+    </qresource>
+</RCC>
