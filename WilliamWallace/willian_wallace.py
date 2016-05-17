@@ -20,12 +20,13 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon, QMenu, QToolButton, QColor
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt4.QtGui import QAction, QIcon, QMenu, QToolButton, QColor, QKeySequence
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
 from choose_db_dialog import ChooseDbDialog
+from classify_dialog import MyClassifier
 import os.path
 import qgis
 from qgis.core import QgsDataSourceURI, QgsVectorLayer, QgsCategorizedSymbolRendererV2, QgsRendererCategoryV2, QgsSymbolV2, QgsMapLayerRegistry, QgsVectorJoinInfo
@@ -85,7 +86,8 @@ class WilliamWallace:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
         self.action1 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Choose target DB", self.iface.mainWindow())
         self.action2 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Apply Symbology", self.iface.mainWindow())
-        self.action3 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Action 3", self.iface.mainWindow())
+        self.action3 = QAction(QIcon(":/plugins/WilliamWallace/icons/tiger.png"), u"Classify", self.iface.mainWindow())
+        self.action3.setShortcut(QKeySequence(Qt.SHIFT + Qt.Key_G))
         self.actions.append(self.action1)
         self.actions.append(self.action2)
         self.actions.append(self.action3)
@@ -95,7 +97,7 @@ class WilliamWallace:
         self.popupMenu.addAction(self.action3)
         self.action1.triggered.connect(self.ChooseTargetDB)
         self.action2.triggered.connect(self.applySymbology)
-        self.action3.triggered.connect(self.someMethod3)
+        self.action3.triggered.connect(self.classify)
         self.toolButton = QToolButton()
         self.toolButton.setMenu(self.popupMenu)
         self.toolButton.setDefaultAction(self.action1)
@@ -114,13 +116,20 @@ class WilliamWallace:
         return
 
     def applySymbology(self):
-        classField = 'classtype'
         self.getConnection()
         vlayer = qgis.utils.iface.mapCanvas().currentLayer()
         if vlayer == None:
             return
 
         fields = vlayer.dataProvider().fields()
+        classField = None
+        for f in fields:
+            if f.name() == "classtype":
+                classField = 'classtype'
+            elif f.name() == "result":
+                classField = 'result'
+        print classField
+
         class_loaded = False
         for layer in QgsMapLayerRegistry.instance().mapLayers().values():
             if  layer.name() == "class":
@@ -164,8 +173,12 @@ class WilliamWallace:
         qgis.utils.iface.messageBar().pushMessage("Information", "Editor widget set", level = qgis.gui.QgsMessageBar.INFO, duration = 5)
         qgis.utils.iface.setActiveLayer(vlayer)
 
-    def someMethod3(self):
-        pass
+    def classify(self):
+        dialog = MyClassifier()
+        dialog.show()
+        ok = dialog.exec_()
+        if ok:
+            dialog.run()
 
     def getConnection(self):
         name = s.value('WallacePlugins/connectionName')
@@ -179,23 +192,9 @@ class WilliamWallace:
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        self.iface.removeToolBarIcon(self.toolbar1)
         for action in self.actions:
             self.iface.removePluginMenu(
                 self.tr(u'&William Wallace'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
-        del self.toolbar1
-
-
-    def run(self):
-        """Run method that performs all the real work"""
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
