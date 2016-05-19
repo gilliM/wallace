@@ -145,8 +145,8 @@ class WilliamWallace:
         for field in fields:
             index = vlayer.fieldNameIndex(field.name())
             if field.name() == classField:
-                vlayer.setEditorWidgetV2(index, 'ValueRelation')
-                vlayer.setEditorWidgetV2Config(index, {'Layer': vlayerClass.id(), 'Key': 'id', 'Value': 'classname'})
+                vlayer.editFormConfig().setWidgetType(index, 'ValueRelation')
+                vlayer.editFormConfig().setWidgetConfig(index, {'Layer': vlayerClass.id(), 'Key': 'id', 'Value': 'classname'})
 
         useJoin = True
         if useJoin:
